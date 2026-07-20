@@ -63,6 +63,27 @@ if _extra_accounts_json:
     except Exception:
         pass
 
+# Trainers/question setters who can log into this tool -- {name: password}. Configured via
+# TRAINER_ACCOUNTS_JSON in TestCase1/.env as a JSON list: [{"name": "Priya", "password": "..."}].
+# Falls back to a single obvious-placeholder account so the tool still runs out of the box in
+# dev, with a loud stderr warning so nobody mistakes it for a real credential in production.
+TRAINER_ACCOUNTS = {}
+_trainer_accounts_json = _env.get("TRAINER_ACCOUNTS_JSON", "")
+if _trainer_accounts_json:
+    try:
+        for _t in json.loads(_trainer_accounts_json):
+            TRAINER_ACCOUNTS[_t["name"]] = _t["password"]
+    except Exception:
+        pass
+if not TRAINER_ACCOUNTS:
+    print(
+        "[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a "
+        "placeholder login (admin / changeme123). Set real trainer accounts before sharing "
+        "this tool outside your own machine.",
+        file=sys.stderr,
+    )
+    TRAINER_ACCOUNTS = {"admin": "changeme123"}
+
 # Vite's default dev port, plus an override for wherever the built frontend ends up served
 # from on a shared deployment.
 CORS_ORIGINS = [o.strip() for o in os.environ.get(

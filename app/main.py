@@ -3,11 +3,13 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import config, registry, worker
-from app.schemas import ConfigResponse, RunCreateRequest, RunCreateResponse, RunView
+from app import auth, config, registry, worker
+from app.schemas import (
+    ConfigResponse, LoginRequest, MeResponse, RunCreateRequest, RunCreateResponse, RunView,
+)
 
 
 @asynccontextmanager
@@ -22,9 +24,34 @@ app = FastAPI(title="PPA Assessment Runner API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.CORS_ORIGINS,
+    allow_credentials=True,  # needed for the session cookie on any non-proxied deployment
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/api/auth/login", response_model=MeResponse)
+def login(req: LoginRequest, response: Response):
+    token = auth.login(req.name, req.password)
+    if token is None:
+        raise HTTPException(401, "Incorrect name or password.")
+    response.set_cookie(
+        auth.COOKIE_NAME, token, max_age=auth.SESSION_TTL_SECONDS,
+        httponly=True, samesite="lax",
+    )
+    return MeResponse(name=req.name)
+
+
+@app.post("/api/auth/logout")
+def logout(response: Response, session_token: str | None = Cookie(default=None)):
+    auth.logout(session_token)
+    response.delete_cookie(auth.COOKIE_NAME)
+    return {"ok": True}
+
+
+@app.get("/api/auth/me", response_model=MeResponse)
+def me(trainer: str = Depends(auth.require_auth)):
+    return MeResponse(name=trainer)
 
 
 def _read_telemetry(output_dir):
@@ -51,7 +78,7 @@ def _run_view(run: dict) -> RunView:
 
 
 @app.get("/api/config", response_model=ConfigResponse)
-def get_config():
+def get_config(trainer: str = Depends(auth.require_auth)):
     return ConfigResponse(
         accounts=list(config.TEST_ACCOUNTS.keys()),
         recommended_models=config.RECOMMENDED_MODELS,
@@ -61,7 +88,7 @@ def get_config():
 
 
 @app.post("/api/runs", response_model=RunCreateResponse)
-def create_run(req: RunCreateRequest):
+def create_run(req: RunCreateRequest, trainer: str = Depends(auth.require_auth)):
     assessment_url = req.assessment_url.strip()
     if not assessment_url.startswith(("http://", "https://")):
         raise HTTPException(400, "Please provide a valid assessment link (starting with http:// or https://).")
@@ -82,6 +109,7 @@ def create_run(req: RunCreateRequest):
         model=model,
         max_retries=req.max_retries,
         output_dir=output_dir,
+        created_by=trainer,
     )
     worker.enqueue({
         "run_id": run_id,
@@ -97,12 +125,12 @@ def create_run(req: RunCreateRequest):
 
 
 @app.get("/api/runs", response_model=list[RunView])
-def list_runs():
+def list_runs(trainer: str = Depends(auth.require_auth)):
     return [_run_view(r) for r in registry.list_runs()]
 
 
 @app.get("/api/runs/{run_id}", response_model=RunView)
-def get_run(run_id: str):
+def get_run(run_id: str, trainer: str = Depends(auth.require_auth)):
     run = registry.get_run(run_id)
     if not run:
         raise HTTPException(404, "Run not found.")
@@ -110,7 +138,7 @@ def get_run(run_id: str):
 
 
 @app.post("/api/runs/{run_id}/cancel")
-def cancel_run(run_id: str):
+def cancel_run(run_id: str, trainer: str = Depends(auth.require_auth)):
     run = registry.get_run(run_id)
     if not run:
         raise HTTPException(404, "Run not found.")

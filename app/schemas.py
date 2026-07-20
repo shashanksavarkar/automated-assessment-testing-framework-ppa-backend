@@ -3,6 +3,15 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
+class LoginRequest(BaseModel):
+    name: str
+    password: str
+
+
+class MeResponse(BaseModel):
+    name: str
+
+
 class ConfigResponse(BaseModel):
     accounts: list[str]
     recommended_models: list[str]
@@ -32,6 +41,7 @@ class RunView(BaseModel):
     output_dir: str
     status: str
     error: Optional[str] = None
+    created_by: Optional[str] = None
     created_at: float
     started_at: Optional[float] = None
     finished_at: Optional[float] = None
