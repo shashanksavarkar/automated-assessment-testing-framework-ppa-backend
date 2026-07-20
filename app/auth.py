@@ -1,6 +1,7 @@
 import secrets
 import time
 
+import bcrypt
 from fastapi import Cookie, HTTPException
 
 from app import config
@@ -14,11 +15,17 @@ SESSION_TTL_SECONDS = 12 * 60 * 60  # 12 hours
 # for this tool's scale.
 _sessions: dict[str, tuple[str, float]] = {}
 
+# A dummy hash to check against when the email doesn't exist, so a bad email takes roughly
+# the same time as a bad password instead of short-circuiting instantly -- bcrypt.checkpw is
+# already constant-time for a given hash, but skipping it entirely for unknown emails would
+# leak which emails are registered via response timing.
+_DUMMY_HASH = bcrypt.hashpw(b"", bcrypt.gensalt()).decode()
+
 
 def login(email: str, password: str) -> str | None:
-    expected = config.TRAINER_ACCOUNTS.get(email)
-    # constant-time compare so response timing can't be used to probe for valid emails
-    if expected is None or not secrets.compare_digest(password, expected):
+    expected_hash = config.TRAINER_ACCOUNTS.get(email)
+    ok = bcrypt.checkpw(password.encode(), (expected_hash or _DUMMY_HASH).encode())
+    if expected_hash is None or not ok:
         return None
     token = secrets.token_urlsafe(32)
     _sessions[token] = (email, time.time() + SESSION_TTL_SECONDS)
