@@ -32,14 +32,14 @@ app.add_middleware(
 
 @app.post("/api/auth/login", response_model=MeResponse)
 def login(req: LoginRequest, response: Response):
-    token = auth.login(req.name, req.password)
+    token = auth.login(req.email, req.password)
     if token is None:
-        raise HTTPException(401, "Incorrect name or password.")
+        raise HTTPException(401, "Incorrect email or password.")
     response.set_cookie(
         auth.COOKIE_NAME, token, max_age=auth.SESSION_TTL_SECONDS,
         httponly=True, samesite="lax",
     )
-    return MeResponse(name=req.name)
+    return MeResponse(email=req.email)
 
 
 @app.post("/api/auth/logout")
@@ -51,7 +51,7 @@ def logout(response: Response, session_token: str | None = Cookie(default=None))
 
 @app.get("/api/auth/me", response_model=MeResponse)
 def me(trainer: str = Depends(auth.require_auth)):
-    return MeResponse(name=trainer)
+    return MeResponse(email=trainer)
 
 
 def _read_telemetry(output_dir):

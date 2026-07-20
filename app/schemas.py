@@ -4,12 +4,12 @@ from pydantic import BaseModel, Field
 
 
 class LoginRequest(BaseModel):
-    name: str
+    email: str
     password: str
 
 
 class MeResponse(BaseModel):
-    name: str
+    email: str
 
 
 class ConfigResponse(BaseModel):
