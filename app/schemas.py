@@ -12,9 +12,17 @@ class MeResponse(BaseModel):
     email: str
 
 
+class ModelStat(BaseModel):
+    model: str
+    runs: int
+    coding_questions: int
+    success_rate: Optional[float] = None  # fraction 0-1; None if no CODING data observed yet
+
+
 class ConfigResponse(BaseModel):
     accounts: list[str]
     recommended_models: list[str]
+    model_stats: list[ModelStat]
     default_model: str
     default_retries: int
 

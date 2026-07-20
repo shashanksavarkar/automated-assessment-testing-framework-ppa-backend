@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import auth, config, registry, worker
 from app.schemas import (
-    ConfigResponse, LoginRequest, MeResponse, RunCreateRequest, RunCreateResponse, RunView,
+    ConfigResponse, LoginRequest, MeResponse, ModelStat, RunCreateRequest, RunCreateResponse, RunView,
 )
 
 
@@ -77,11 +77,48 @@ def _run_view(run: dict) -> RunView:
     )
 
 
+def _compute_model_stats() -> list[ModelStat]:
+    # Success rate is measured on CODING questions only -- MCQ questions are always recorded
+    # as "PASSED" the moment an option is selected (their real correctness can't be verified
+    # before official grading), so mixing them in would make every model look artificially
+    # near-100%. Uses every run's telemetry regardless of overall run status (a crashed run
+    # can still contain real, individually-verified coding attempts worth counting), keyed by
+    # whichever model actually generated that run's code.
+    by_model: dict[str, dict] = {}
+    for run in registry.list_runs(limit=500):
+        telemetry = _read_telemetry(run["output_dir"])
+        if not telemetry:
+            continue
+        coding = [
+            q for q in telemetry.get("questions", [])
+            if q.get("type") == "CODING" and q.get("status") in ("PASSED", "FAILED")
+        ]
+        if not coding:
+            continue
+        entry = by_model.setdefault(run["model"], {"runs": set(), "total": 0, "passed": 0})
+        entry["runs"].add(run["id"])
+        entry["total"] += len(coding)
+        entry["passed"] += sum(1 for q in coding if q["status"] == "PASSED")
+
+    stats = [
+        ModelStat(
+            model=model,
+            runs=len(e["runs"]),
+            coding_questions=e["total"],
+            success_rate=(e["passed"] / e["total"]) if e["total"] else None,
+        )
+        for model, e in by_model.items()
+    ]
+    stats.sort(key=lambda s: (s.success_rate is None, -(s.success_rate or 0)))
+    return stats
+
+
 @app.get("/api/config", response_model=ConfigResponse)
 def get_config(trainer: str = Depends(auth.require_auth)):
     return ConfigResponse(
         accounts=list(config.TEST_ACCOUNTS.keys()),
         recommended_models=config.RECOMMENDED_MODELS,
+        model_stats=_compute_model_stats(),
         default_model=config.DEFAULT_MODEL,
         default_retries=config.DEFAULT_RETRIES,
     )
