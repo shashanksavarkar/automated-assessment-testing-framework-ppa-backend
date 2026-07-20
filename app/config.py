@@ -18,6 +18,12 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 ASSESSMENT_DIR = Path(os.environ.get("ASSESSMENT_DIR", BACKEND_DIR.parent / "TestCase1"))
 OUTPUT_DIR = ASSESSMENT_DIR / "output"
 
+# Built frontend static assets (`npm run build` output). When this exists, the backend serves
+# it directly on the same port as the API -- avoids needing a separate web server (nginx/IIS)
+# for a single-machine deployment. Absent in normal local dev (frontend runs via Vite's own
+# dev server instead), so this stays inert until someone actually builds it.
+FRONTEND_DIST_DIR = Path(os.environ.get("FRONTEND_DIST_DIR", BACKEND_DIR.parent / "frontend" / "dist"))
+
 # The assessment engine has its own venv with selenium/openai installed; the backend's venv
 # does not (and should not -- it only needs fastapi/uvicorn/dotenv). Subprocess calls must use
 # the assessment engine's interpreter explicitly, never `sys.executable` from inside this
@@ -94,5 +100,9 @@ if not TRAINER_ACCOUNTS:
 CORS_ORIGINS = [o.strip() for o in os.environ.get(
     "BACKEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
 ).split(",") if o.strip()]
+
+# Browsers refuse a Secure cookie over plain HTTP, so this must stay False for local dev
+# (http://localhost) and only flip to True once genuinely served over HTTPS in production.
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
 
 RUN_TIMEOUT_SECONDS = 20 * 60

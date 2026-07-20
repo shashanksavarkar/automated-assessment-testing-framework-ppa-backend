@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import auth, config, registry, worker
 from app.schemas import (
@@ -37,7 +39,7 @@ def login(req: LoginRequest, response: Response):
         raise HTTPException(401, "Incorrect email or password.")
     response.set_cookie(
         auth.COOKIE_NAME, token, max_age=auth.SESSION_TTL_SECONDS,
-        httponly=True, samesite="lax",
+        httponly=True, samesite="lax", secure=config.COOKIE_SECURE,
     )
     return MeResponse(email=req.email)
 
@@ -185,3 +187,18 @@ def cancel_run(run_id: str, trainer: str = Depends(auth.require_auth)):
     if not worker.cancel_run(run_id):
         raise HTTPException(409, "Could not cancel the run (it may have just finished).")
     return {"ok": True}
+
+
+# Serve the built frontend (if present) on this same port -- mounted last so it never shadows
+# an /api/* route above. assets/ (JS/CSS bundles) get normal static-file caching; everything
+# else falls back to index.html so React Router's client-side routes (e.g. /runs/<id>) work
+# on a hard refresh instead of 404ing, since the server has no matching real path for those.
+if config.FRONTEND_DIST_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=config.FRONTEND_DIST_DIR / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa_fallback(full_path: str):
+        candidate = config.FRONTEND_DIST_DIR / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(config.FRONTEND_DIST_DIR / "index.html")
