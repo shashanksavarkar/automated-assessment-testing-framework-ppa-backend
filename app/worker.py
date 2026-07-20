@@ -15,6 +15,13 @@ JOB_QUEUE = queue.Queue()
 _worker_started = False
 _start_lock = threading.Lock()
 
+# Tracks the live Popen for whichever run is currently executing, so a cancel request can
+# find and kill it. queue.Queue doesn't support removing an arbitrary pending item, so a
+# QUEUED run is cancelled differently: cancel_run() just marks it 'cancelled' in the DB, and
+# _run_job() checks for that before launching the subprocess at all.
+_active_procs = {}
+_active_procs_lock = threading.Lock()
+
 
 def start_worker():
     global _worker_started
@@ -27,6 +34,21 @@ def start_worker():
 
 def enqueue(job):
     JOB_QUEUE.put(job)
+
+
+def cancel_run(run_id):
+    with _active_procs_lock:
+        proc = _active_procs.get(run_id)
+    if proc is not None:
+        _kill_process_tree(proc.pid)
+        registry.update_run(run_id, status="cancelled", finished_at=time.time(), error="Cancelled by user.")
+        return True
+
+    run = registry.get_run(run_id)
+    if run and run["status"] == "queued":
+        registry.update_run(run_id, status="cancelled", finished_at=time.time(), error="Cancelled by user.")
+        return True
+    return False
 
 
 def _worker_loop():
@@ -42,6 +64,12 @@ def _worker_loop():
 
 def _run_job(job):
     run_id = job["run_id"]
+    # A queued run can be cancelled before the worker ever pulls it off the queue --
+    # cancel_run() marks it 'cancelled' in that case since there's no subprocess yet to kill.
+    current = registry.get_run(run_id)
+    if current and current["status"] == "cancelled":
+        return
+
     output_dir = job["output_dir"]
     os.makedirs(output_dir, exist_ok=True)
 
@@ -78,6 +106,8 @@ def _run_job(job):
             stdout=logf,
             stderr=subprocess.STDOUT,
         )
+        with _active_procs_lock:
+            _active_procs[run_id] = proc
         try:
             returncode = proc.wait(timeout=config.RUN_TIMEOUT_SECONDS)
         except subprocess.TimeoutExpired:
@@ -89,6 +119,15 @@ def _run_job(job):
                 error=f"Run exceeded the {config.RUN_TIMEOUT_SECONDS // 60}-minute timeout and was killed.",
             )
             return
+        finally:
+            with _active_procs_lock:
+                _active_procs.pop(run_id, None)
+
+    if registry.get_run(run_id)["status"] == "cancelled":
+        # cancel_run() already killed the process tree and set the final status/error --
+        # proc.wait() above just returned because the process died, don't overwrite that
+        # with a generic "failed" verdict.
+        return
 
     if returncode == 0:
         registry.update_run(run_id, status="completed", finished_at=time.time())

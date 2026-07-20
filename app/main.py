@@ -107,3 +107,15 @@ def get_run(run_id: str):
     if not run:
         raise HTTPException(404, "Run not found.")
     return _run_view(run)
+
+
+@app.post("/api/runs/{run_id}/cancel")
+def cancel_run(run_id: str):
+    run = registry.get_run(run_id)
+    if not run:
+        raise HTTPException(404, "Run not found.")
+    if run["status"] not in ("queued", "running"):
+        raise HTTPException(400, f"Run is already {run['status']}; nothing to cancel.")
+    if not worker.cancel_run(run_id):
+        raise HTTPException(409, "Could not cancel the run (it may have just finished).")
+    return {"ok": True}
