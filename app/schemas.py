@@ -25,6 +25,7 @@ class RunCreateRequest(BaseModel):
     test_account_label: str = "Default"
     model: Optional[str] = None
     max_retries: int = Field(default=2, ge=1, le=5)
+    note: Optional[str] = None
 
 
 class RunCreateResponse(BaseModel):
@@ -42,6 +43,7 @@ class RunView(BaseModel):
     status: str
     error: Optional[str] = None
     created_by: Optional[str] = None
+    note: Optional[str] = None
     created_at: float
     started_at: Optional[float] = None
     finished_at: Optional[float] = None

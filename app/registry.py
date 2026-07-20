@@ -40,23 +40,25 @@ def init_db(db_path=None):
                 created_at REAL NOT NULL,
                 started_at REAL,
                 finished_at REAL,
-                created_by TEXT
+                created_by TEXT,
+                note TEXT
             )
         """)
         # Added after the initial release -- ALTER TABLE so an existing DB from before
-        # trainer login existed doesn't need to be deleted to pick up the new column.
-        try:
-            conn.execute("ALTER TABLE runs ADD COLUMN created_by TEXT")
-        except sqlite3.OperationalError:
-            pass  # already has the column
+        # these columns existed doesn't need to be deleted to pick them up.
+        for col in ("created_by", "note"):
+            try:
+                conn.execute(f"ALTER TABLE runs ADD COLUMN {col} TEXT")
+            except sqlite3.OperationalError:
+                pass  # already has the column
 
 
-def create_run(run_id, assessment_url, headless, test_account_label, model, max_retries, output_dir, created_by=None):
+def create_run(run_id, assessment_url, headless, test_account_label, model, max_retries, output_dir, created_by=None, note=None):
     with _conn() as conn:
         conn.execute(
             "INSERT INTO runs (id, assessment_url, headless, test_account_label, model, "
-            "max_retries, output_dir, status, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, 'queued', ?, ?)",
-            (run_id, assessment_url, int(headless), test_account_label, model, max_retries, output_dir, time.time(), created_by),
+            "max_retries, output_dir, status, created_at, created_by, note) VALUES (?, ?, ?, ?, ?, ?, ?, 'queued', ?, ?, ?)",
+            (run_id, assessment_url, int(headless), test_account_label, model, max_retries, output_dir, time.time(), created_by, note),
         )
 
 

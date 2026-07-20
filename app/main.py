@@ -110,6 +110,7 @@ def create_run(req: RunCreateRequest, trainer: str = Depends(auth.require_auth))
         max_retries=req.max_retries,
         output_dir=output_dir,
         created_by=trainer,
+        note=(req.note or "").strip() or None,
     )
     worker.enqueue({
         "run_id": run_id,
