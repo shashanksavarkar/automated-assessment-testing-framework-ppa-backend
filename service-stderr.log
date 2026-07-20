@@ -1,0 +1,81 @@
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [33672]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [26572]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [31796]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [21424]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [22588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [33784]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [672]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [16656]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [1916]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [16860]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [16860]
+[auth] WARNING: TRAINER_ACCOUNTS_JSON not set in TestCase1/.env -- using a placeholder login (admin / Pass@123) for demo/dev purposes. Set real trainer accounts before sharing this tool outside your own machine.
+INFO:     Started server process [34452]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [34452]
