@@ -36,4 +36,9 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 # Render injects $PORT at runtime; default to 8000 for local `docker run` testing.
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+#
+# Render's Secret Files feature only exposes the file at /etc/secrets/<filename> at runtime
+# (not baked into the image at build time), so copy it into place before uvicorn starts --
+# config.py and TestCase1/config/settings.py both expect a real .env file at TestCase1/.env,
+# not an env var. `|| true` keeps local `docker run` (no secret file present) from failing.
+CMD ["sh", "-c", "cp /etc/secrets/.env /app/TestCase1/.env 2>/dev/null || true; python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
