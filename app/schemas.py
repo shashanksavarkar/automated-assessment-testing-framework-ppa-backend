@@ -27,10 +27,18 @@ class ConfigResponse(BaseModel):
     default_retries: int
 
 
+class CustomAccount(BaseModel):
+    email: str
+    name: str = "BOT"
+    mobile: str = "9999999999"
+    roll_number: str = "9988774455"
+
+
 class RunCreateRequest(BaseModel):
     assessment_url: str
     headless: bool = True
     test_account_label: str = "Default"
+    custom_account: Optional[CustomAccount] = None
     model: Optional[str] = None
     max_retries: int = Field(default=2, ge=1, le=5)
     note: Optional[str] = None

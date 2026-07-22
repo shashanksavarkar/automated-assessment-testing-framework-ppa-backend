@@ -46,7 +46,13 @@ DEFAULT_RETRIES = int(_env.get("CODING_MAX_RETRIES", "2"))
 
 # Only models confirmed not to queue indefinitely on this NVIDIA NIM account tier -- see
 # TestCase1/v1_logs.md bug #2. Kept in sync by hand with config/settings.py's RECOMMENDED_MODELS.
-RECOMMENDED_MODELS = ["meta/llama-3.1-8b-instruct"]
+RECOMMENDED_MODELS = [
+    "meta/llama-3.1-8b-instruct",
+    "meta/llama-3.2-3b-instruct",
+    "nvidia/nemotron-mini-4b-instruct",
+    "google/gemma-2-2b-it",
+    "mistralai/mixtral-8x7b-instruct-v0.1",
+]
 
 TEST_ACCOUNTS = {
     "Default": {

@@ -132,8 +132,25 @@ def create_run(req: RunCreateRequest, trainer: str = Depends(auth.require_auth))
     if not assessment_url.startswith(("http://", "https://")):
         raise HTTPException(400, "Please provide a valid assessment link (starting with http:// or https://).")
 
-    if req.test_account_label not in config.TEST_ACCOUNTS:
-        raise HTTPException(400, "Unknown test account selected.")
+    # A custom/dummy account needs no pre-registration -- Yopmail creates any inbox on first
+    # visit, so any @yopmail.com address works immediately. Only that domain is accepted since
+    # YopmailOTPFetcher can only read OTPs back out of a Yopmail inbox.
+    if req.custom_account is not None:
+        email = req.custom_account.email.strip().lower()
+        if not email.endswith("@yopmail.com"):
+            raise HTTPException(400, "Custom account email must end in @yopmail.com (Yopmail is what fetches the OTP).")
+        account = {
+            "email": email,
+            "name": req.custom_account.name.strip() or "BOT",
+            "mobile": req.custom_account.mobile.strip() or "9999999999",
+            "roll_number": req.custom_account.roll_number.strip() or "9988774455",
+        }
+        test_account_label = email
+    else:
+        if req.test_account_label not in config.TEST_ACCOUNTS:
+            raise HTTPException(400, "Unknown test account selected.")
+        account = config.TEST_ACCOUNTS[req.test_account_label]
+        test_account_label = req.test_account_label
 
     model = (req.model or "").strip() or config.DEFAULT_MODEL
 
@@ -144,7 +161,7 @@ def create_run(req: RunCreateRequest, trainer: str = Depends(auth.require_auth))
         run_id=run_id,
         assessment_url=assessment_url,
         headless=req.headless,
-        test_account_label=req.test_account_label,
+        test_account_label=test_account_label,
         model=model,
         max_retries=req.max_retries,
         output_dir=output_dir,
@@ -158,7 +175,7 @@ def create_run(req: RunCreateRequest, trainer: str = Depends(auth.require_auth))
         "model": model,
         "max_retries": req.max_retries,
         "output_dir": output_dir,
-        "account": config.TEST_ACCOUNTS[req.test_account_label],
+        "account": account,
     })
 
     return RunCreateResponse(id=run_id)
